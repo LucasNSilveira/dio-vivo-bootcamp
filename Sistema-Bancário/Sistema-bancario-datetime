@@ -1,6 +1,6 @@
 import textwrap
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Cliente:
     def __init__(self, endereco) -> None:
@@ -25,11 +25,11 @@ class PessoaFisica(Cliente):
 
 class Conta:
     def __init__(self, numero, cliente):
-        self.saldo = 0
-        self.numero = numero
-        self.agencia = "0001"
+        self._saldo = 0
+        self._numero = numero
+        self._agencia = "0001"
         self._cliente = cliente
-        self.historico = Historico()
+        self._historico = Historico()
 
     @classmethod
     def nova_conta(cls, cliente, numero):
@@ -62,7 +62,7 @@ class Conta:
         if excedeu_saldo:
             print("\n Operação falhou! Você não tem saldo o suficiente")
         elif valor > 0:
-            self.saldo -= valor
+            self._saldo -= valor
             print("\n Saque realizado com sucesso!")
             return True
         else:
@@ -80,7 +80,6 @@ class Conta:
         
         return True
     
-
 class ContaCorrente(Conta):
     
     def __init__(self, numero, cliente, limite=500, limite_saques=3):
@@ -115,7 +114,7 @@ class ContaCorrente(Conta):
 
 class Historico:
     def __init__(self):
-        self._transacao = []
+        self._transacoes = []
 
     @property
     def transacoes(self):
@@ -126,7 +125,7 @@ class Historico:
             {
                 "tipo": transacao.__class__.__name__,
                 "valor": transacao.valor,
-                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%s"),
+                "data": datetime.now().strftime("%d-%m-%Y %H:%M:%f"),
             }
         )
    
@@ -136,10 +135,10 @@ class Historico:
                 yield transacao
     
     def transacao_dia(self):
-        data_atual = datetime.utnow().date()
+        data_atual = datetime.now(timezone.utc).date()
         transacoes = []
         for transacao in self._transacoes:
-            data_transacao = datetime.strptime(transacao['data']), "%d-%m-%Y %H:%M:%s".date()
+            data_transacao = datetime.strptime(transacao['data'], "%d-%m-%Y %H:%M:%f").date()
             if data_atual == data_transacao:
                 transacoes.append(transacao)
         return transacoes
@@ -332,4 +331,6 @@ def main():
 
         else:
             print("\n@@@ Operação inválida, por favor selecione novamente a operação desejada. @@@")
+
+
 main()
